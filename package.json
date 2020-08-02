@@ -1,6 +1,6 @@
 { "version": "0.0.7"
 , "name": "elm-physics-example"
-, "nameLong": "elm-physics-example"
+, "nameLong": "Elm Physics Example"
 , "description": "Example of an Elm application built with elm-physics and elm-starter."
 , "author": "Andrey Kuzmin (elm-physics), Luca Mugnaini (elm-starter)"
 , "twitterSite": "lucamug"

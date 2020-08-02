@@ -42,7 +42,7 @@ import Vector3d
 conf : Starter.ConfMain.Conf
 conf =
     { urls = []
-    , assetsToCache = []
+    , assetsToCache = [ "/index.html" ]
     }
 
 
