@@ -320,7 +320,8 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ Common.Events.onResize Resize
-        , Common.Events.onAnimationFrameDelta Tick
+
+        -- , Common.Events.onAnimationFrameDelta Tick
         , Browser.Events.onKeyDown (keyDecoder KeyDown)
         , Browser.Events.onKeyUp (keyDecoder KeyUp)
         ]
