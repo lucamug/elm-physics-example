@@ -1,9 +1,8 @@
 port module Main exposing (conf, main)
 
--- TODO
 --
--- * Add sound as per tempt/CarEngines/engine2.js
--- * Add music as per https://www.w3schools.com/graphics/game_sound.asp
+-- Made from https://github.com/w0rm/elm-physics/blob/raycast-vehicle/examples/RaycastCar.elm
+--
 
 import Acceleration
 import Angle
@@ -380,6 +379,36 @@ view model =
             , maybeRaycastResult = Nothing
             , floorOffset = floorOffset
             }
+        , Html.div
+            [ Html.Attributes.style "position" "absolute"
+            , Html.Attributes.style "top" "0"
+            , Html.Attributes.style "left" "0"
+            , Html.Attributes.style "margin" "50px"
+            , Html.Attributes.style "font-size" "20px"
+            , Html.Attributes.style "color" "white"
+            ]
+            [ Html.p [] [ Html.text "WASD car controls" ]
+            , Html.p [] [ Html.text "B brakes" ]
+            , Html.p [] [ Html.text "R restart" ]
+            , Html.p [] [ Html.text "Q options" ]
+            , Html.p [] [ Html.text "H help" ]
+            , Html.br [] []
+            , Html.p []
+                [ Html.text "Made with "
+                , Html.a
+                    [ Html.Attributes.href "https://package.elm-lang.org/packages/w0rm/elm-physics/latest/"
+                    , Html.Attributes.target "_blank"
+                    ]
+                    [ Html.text "elm-physics" ]
+                , Html.text " and "
+                , Html.a
+                    [ Html.Attributes.href "https://github.com/lucamug/elm-starter"
+                    , Html.Attributes.target "_blank"
+                    ]
+                    [ Html.text "elm-starter" ]
+                , Html.text "."
+                ]
+            ]
         , Common.Settings.view ForSettings model.settings []
         , if model.settings.showFpsMeter then
             Common.Fps.view model.fps (List.length (Physics.World.bodies model.world))

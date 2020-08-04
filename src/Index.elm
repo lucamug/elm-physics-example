@@ -27,10 +27,24 @@ index flags =
                    , link [ rel "apple-touch-icon", href (Starter.Icon.iconFileName 152) ] []
                    , style_ []
                         [ text <| """
+
+                            @font-face {
+                                font-family: 'zx_spectrumregular';
+                                src: url('zx-spectrum-webfont.woff2') format('woff2'),
+                                     url('zx-spectrum-webfont.woff') format('woff');
+                                font-weight: normal;
+                                font-style: normal;
+
+                            }
+                            
                             body 
                                 { background-color: """ ++ Starter.Flags.flagsToThemeColor flags ++ """
-                                ; font-family: 'IBM Plex Sans', helvetica, sans-serif
+                                ; font-family: 'zx_spectrumregular'
                                 ; margin: 0px;
+                                }
+                            
+                            a
+                                { color: white
                                 }""" ]
                    ]
                 ++ Starter.SnippetHtml.messagesStyle
@@ -94,6 +108,8 @@ index flags =
                                 });
                             } 
                             
+                            
+                            // https://www.html5rocks.com/en/tutorials/webaudio/intro/
                             var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                             var xhr = new XMLHttpRequest();
                             var started = false;

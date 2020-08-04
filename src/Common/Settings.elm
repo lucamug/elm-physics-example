@@ -67,8 +67,8 @@ view msg { showSettings, debugContacts, debugWireframes, debugCenterOfMass, show
         [ style "position" "fixed"
         , style "right" "6px"
         , style "top" "0"
-        , style "font-family" "monospace"
         , style "color" "white"
+        , style "opacity" "0.7"
         ]
         (if showSettings then
             [ Html.div

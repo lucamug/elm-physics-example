@@ -1,0 +1,2 @@
+https://github.com/jfsebastian/zx-spectrum-unicode-font/blob/master/LICENSE
+https://www.fontsquirrel.com/tools/webfont-generator

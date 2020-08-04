@@ -34,16 +34,15 @@ view fps numBodies =
     in
     Html.div
         [ style "position" "fixed"
-        , style "font-family" "monospaced"
-        , style "right" "250px"
-        , style "top" "0"
+        , style "right" "450px"
+        , style "top" "30px"
         , style "color" "white"
         ]
-        [ Html.span [ style "font" "50px sans-serif" ]
+        [ Html.span [ style "font-size" "40px" ]
             [ Html.text (String.fromInt (round (1000 / average 1 0 0 fps))) ]
         , Html.text " fps"
         , Html.span
-            [ style "font" "50px sans-serif" ]
+            [ style "font-size" "40px" ]
             [ Html.text (" " ++ String.fromInt numBodies) ]
         , Html.text " bodies"
         ]
