@@ -54,12 +54,7 @@ index flags =
         , body []
             ([]
                 -- Friendly message in case Javascript is disabled
-                ++ (if flags.env == "dev" then
-                        Starter.SnippetHtml.messageYouNeedToEnableJavascript
-
-                    else
-                        Starter.SnippetHtml.messageEnableJavascriptForBetterExperience
-                   )
+                ++ Starter.SnippetHtml.messageYouNeedToEnableJavascript
                 -- "Loading..." message
                 ++ Starter.SnippetHtml.messageLoading
                 -- The DOM node that Elm will take over
