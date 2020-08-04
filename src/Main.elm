@@ -1,7 +1,7 @@
 port module Main exposing (conf, main)
 
 --
--- Made from https://github.com/w0rm/elm-physics/blob/raycast-vehicle/examples/RaycastCar.elm
+-- A modified version of https://github.com/w0rm/elm-physics/blob/raycast-vehicle/examples/RaycastCar.elm
 --
 
 import Acceleration
@@ -157,6 +157,7 @@ type alias Model =
     , speeding : Float
     , steering : Float
     , braking : Bool
+    , help : Bool
     , pitch : Float
     , lastPitch : Float
     }
@@ -168,6 +169,7 @@ type Command
     | Brake
     | Reset
     | ToggleSettings
+    | ToggleHelp
 
 
 keyDecoder : (Command -> Msg) -> Json.Decode.Decoder Msg
@@ -175,7 +177,7 @@ keyDecoder toMsg =
     Json.Decode.field "key" Json.Decode.string
         |> Json.Decode.andThen
             (\string ->
-                case string of
+                case String.toLower string of
                     "a" ->
                         Json.Decode.succeed (toMsg (Steer -1))
 
@@ -196,6 +198,9 @@ keyDecoder toMsg =
 
                     "q" ->
                         Json.Decode.succeed (toMsg ToggleSettings)
+
+                    "h" ->
+                        Json.Decode.succeed (toMsg ToggleHelp)
 
                     _ ->
                         Json.Decode.fail ("Unrecognized key: " ++ string)
@@ -233,6 +238,7 @@ init flags =
       , speeding = 0
       , steering = 0
       , braking = False
+      , help = True
       , camera =
             Common.Camera.camera
                 { from = { x = -40, y = 40, z = 30 }
@@ -293,10 +299,10 @@ update msg model =
             )
                 |> updatePitch
                     (if model.speeding == 0 then
-                        -1.5
+                        -0.8
 
                      else
-                        2
+                        1.3
                     )
 
         Resize width height ->
@@ -306,7 +312,12 @@ update msg model =
             ( { model | steering = k }, Cmd.none )
 
         KeyDown (Speed k) ->
-            ( { model | speeding = k }, Cmd.none )
+            ( { model
+                | speeding = k
+                , help = False
+              }
+            , Cmd.none
+            )
 
         KeyDown Brake ->
             ( { model | braking = True }, Cmd.none )
@@ -315,6 +326,9 @@ update msg model =
             ( model, Cmd.none )
 
         KeyDown ToggleSettings ->
+            ( model, Cmd.none )
+
+        KeyDown ToggleHelp ->
             ( model, Cmd.none )
 
         KeyUp (Steer k) ->
@@ -354,6 +368,9 @@ update msg model =
             in
             ( { model | settings = { settings | showSettings = not settings.showSettings } }, Cmd.none )
 
+        KeyUp ToggleHelp ->
+            ( { model | help = not model.help }, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
@@ -379,36 +396,51 @@ view model =
             , maybeRaycastResult = Nothing
             , floorOffset = floorOffset
             }
-        , Html.div
-            [ Html.Attributes.style "position" "absolute"
-            , Html.Attributes.style "top" "0"
-            , Html.Attributes.style "left" "0"
-            , Html.Attributes.style "margin" "50px"
-            , Html.Attributes.style "font-size" "20px"
-            , Html.Attributes.style "color" "white"
-            ]
-            [ Html.p [] [ Html.text "WASD car controls" ]
-            , Html.p [] [ Html.text "B brakes" ]
-            , Html.p [] [ Html.text "R restart" ]
-            , Html.p [] [ Html.text "Q options" ]
-            , Html.p [] [ Html.text "H help" ]
-            , Html.br [] []
-            , Html.p []
-                [ Html.text "Made with "
-                , Html.a
-                    [ Html.Attributes.href "https://package.elm-lang.org/packages/w0rm/elm-physics/latest/"
-                    , Html.Attributes.target "_blank"
-                    ]
-                    [ Html.text "elm-physics" ]
-                , Html.text " and "
-                , Html.a
-                    [ Html.Attributes.href "https://github.com/lucamug/elm-starter"
-                    , Html.Attributes.target "_blank"
-                    ]
-                    [ Html.text "elm-starter" ]
-                , Html.text "."
+        , if model.help then
+            Html.div
+                [ Html.Attributes.style "position" "absolute"
+                , Html.Attributes.style "top" "0"
+                , Html.Attributes.style "left" "0"
+                , Html.Attributes.style "margin" "50px"
+                , Html.Attributes.style "font-size" "20px"
+                , Html.Attributes.style "color" "white"
                 ]
-            ]
+                [ Html.p [ Html.Attributes.style "font-size" "28px" ] [ Html.text "Elm Physics Example" ]
+                , Html.br [] []
+                , Html.p [] [ Html.text "WASD car controls" ]
+                , Html.p [] [ Html.text "B brakes" ]
+                , Html.p [] [ Html.text "R restart" ]
+                , Html.p [] [ Html.text "Q options" ]
+                , Html.p [] [ Html.text "H help" ]
+                , Html.br [] []
+                , Html.p []
+                    [ Html.text "Made with "
+                    , Html.a
+                        [ Html.Attributes.href "https://package.elm-lang.org/packages/w0rm/elm-physics/latest/"
+                        , Html.Attributes.target "_blank"
+                        ]
+                        [ Html.text "elm-physics" ]
+                    , Html.text "❤️ and "
+                    , Html.a
+                        [ Html.Attributes.href "https://github.com/lucamug/elm-starter"
+                        , Html.Attributes.target "_blank"
+                        ]
+                        [ Html.text "elm-starter" ]
+                    , Html.text "."
+                    ]
+                , Html.p []
+                    [ Html.text "Code at "
+                    , Html.a
+                        [ Html.Attributes.href "https://github.com/lucamug/elm-physics-example"
+                        , Html.Attributes.target "_blank"
+                        ]
+                        [ Html.text "Github" ]
+                    , Html.text "."
+                    ]
+                ]
+
+          else
+            Html.text ""
         , Common.Settings.view ForSettings model.settings []
         , if model.settings.showFpsMeter then
             Common.Fps.view model.fps (List.length (Physics.World.bodies model.world))

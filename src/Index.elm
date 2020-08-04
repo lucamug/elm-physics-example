@@ -103,7 +103,7 @@ index flags =
                                             source.start();
                                             started = true;
                                         }
-                                        source.playbackRate.value = 1 + (newPitch / 40);
+                                        source.playbackRate.value = 1 + (newPitch / 50);
                                     }
                                 });
                             } 
