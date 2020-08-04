@@ -1,4 +1,4 @@
-module Main exposing (conf, main)
+port module Main exposing (conf, main)
 
 -- TODO
 --
@@ -42,7 +42,7 @@ import Vector3d
 conf : Starter.ConfMain.Conf
 conf =
     { urls = []
-    , assetsToCache = [ "/index.html" ]
+    , assetsToCache = [ "/" ]
     }
 
 
@@ -60,6 +60,9 @@ color =
     , wall = { red = 0.8, green = 0.9, blue = 1 }
     , box = { red = 1, green = 0.8, blue = 0.5 }
     }
+
+
+port changePitch : Float -> Cmd msg
 
 
 {-| Give a name to each body, so that we can configure constraints
@@ -155,6 +158,8 @@ type alias Model =
     , speeding : Float
     , steering : Float
     , braking : Bool
+    , pitch : Float
+    , lastPitch : Float
     }
 
 
@@ -214,7 +219,7 @@ main : Program Flags Model Msg
 main =
     Browser.element
         { init = init
-        , update = \msg model -> ( update msg model, Cmd.none )
+        , update = update
         , subscriptions = subscriptions
         , view = view
         }
@@ -234,21 +239,43 @@ init flags =
                 { from = { x = -40, y = 40, z = 30 }
                 , to = { x = 0, y = -7, z = 0 }
                 }
+      , pitch = 1
+      , lastPitch = 1
       }
     , Common.Events.measureSize Resize
     )
 
 
-update : Msg -> Model -> Model
+updatePitch : Float -> ( Model, Cmd msg ) -> ( Model, Cmd msg )
+updatePitch increase ( model, cmd ) =
+    let
+        newPitch =
+            clamp 0 100 (model.pitch + increase)
+    in
+    if abs (newPitch - model.lastPitch) > 5 then
+        ( { model
+            | pitch = newPitch
+            , lastPitch = newPitch
+          }
+        , Cmd.batch [ cmd, changePitch newPitch ]
+        )
+
+    else
+        ( { model | pitch = newPitch }, cmd )
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ForSettings settingsMsg ->
-            { model
+            ( { model
                 | settings = Common.Settings.update settingsMsg model.settings
-            }
+              }
+            , Cmd.none
+            )
 
         Tick dt ->
-            { model
+            ( { model
                 | fps = Common.Fps.update dt model.fps
                 , world =
                     model.world
@@ -262,58 +289,71 @@ update msg model =
                                         body
                             )
                         |> Physics.World.simulate (Duration.seconds (1 / 60))
-            }
+              }
+            , Cmd.none
+            )
+                |> updatePitch
+                    (if model.speeding == 0 then
+                        -1.5
+
+                     else
+                        2
+                    )
 
         Resize width height ->
-            { model | camera = Common.Camera.resize width height model.camera }
+            ( { model | camera = Common.Camera.resize width height model.camera }, Cmd.none )
 
         KeyDown (Steer k) ->
-            { model | steering = k }
+            ( { model | steering = k }, Cmd.none )
 
         KeyDown (Speed k) ->
-            { model | speeding = k }
+            ( { model | speeding = k }, Cmd.none )
 
         KeyDown Brake ->
-            { model | braking = True }
+            ( { model | braking = True }, Cmd.none )
 
         KeyDown Reset ->
-            model
+            ( model, Cmd.none )
 
         KeyDown ToggleSettings ->
-            model
+            ( model, Cmd.none )
 
         KeyUp (Steer k) ->
-            { model
+            ( { model
                 | steering =
                     if k == model.steering then
                         0
 
                     else
                         model.steering
-            }
+              }
+            , Cmd.none
+            )
 
         KeyUp (Speed k) ->
-            { model
+            ( { model
                 | speeding =
                     if k == model.speeding then
                         0
 
                     else
                         model.speeding
-            }
+              }
+            , Cmd.none
+            )
 
         KeyUp Brake ->
-            { model | braking = False }
+            ( { model | braking = False }, Cmd.none )
 
         KeyUp Reset ->
-            { model | world = initialWorld }
+            ( { model | world = initialWorld }, Cmd.none )
 
         KeyUp ToggleSettings ->
             let
                 settings =
                     model.settings
             in
-            { model | settings = { settings | showSettings = not settings.showSettings } }
+            ( { model | settings = { settings | showSettings = not settings.showSettings } }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -327,20 +367,22 @@ subscriptions _ =
 
 
 view : Model -> Html.Html Msg
-view { settings, fps, world, camera } =
+view model =
     Html.div [ Html.Attributes.id "elm" ]
-        [ Common.Scene.view { red = 1, green = 0.5, blue = 0.5, alpha = 1 }
+        [ -- Html.text <| String.fromFloat model.lastPitch
+          Common.Scene.view
+            { red = 1, green = 0.5, blue = 0.5, alpha = 1 }
             { red = 0.9, green = 0.4, blue = 0.4 }
-            { settings = settings
-            , world = addWheelsToWorld world
-            , camera = camera
+            { settings = model.settings
+            , world = addWheelsToWorld model.world
+            , camera = model.camera
             , meshes = .meshes
             , maybeRaycastResult = Nothing
             , floorOffset = floorOffset
             }
-        , Common.Settings.view ForSettings settings []
-        , if settings.showFpsMeter then
-            Common.Fps.view fps (List.length (Physics.World.bodies world))
+        , Common.Settings.view ForSettings model.settings []
+        , if model.settings.showFpsMeter then
+            Common.Fps.view model.fps (List.length (Physics.World.bodies model.world))
 
           else
             Html.text ""
@@ -413,11 +455,11 @@ addWheelsToWorld world =
 addBoxes : ( Float, Float, Float ) -> Physics.World.World Data -> Physics.World.World Data
 addBoxes ( x, y, z ) world =
     world
-        |> Physics.World.add (box (Point3d.meters (15 + x) (-15 + y) (-0.5 + z)))
+        -- |> Physics.World.add (box (Point3d.meters (15 + x) (-15 + y) (-0.5 + z)))
         |> Physics.World.add (box (Point3d.meters (15 + x) (-16.5 + y) (-0.5 + z)))
         |> Physics.World.add (box (Point3d.meters (15 + x) (-18 + y) (-0.5 + z)))
-        |> Physics.World.add (box (Point3d.meters (15 + x) (-16 + y) (0.5 + z)))
-        |> Physics.World.add (box (Point3d.meters (15 + x) (-17.5 + y) (0.5 + z)))
+        -- |> Physics.World.add (box (Point3d.meters (15 + x) (-16 + y) (0.5 + z)))
+        -- |> Physics.World.add (box (Point3d.meters (15 + x) (-17.5 + y) (0.5 + z)))
         |> Physics.World.add (box (Point3d.meters (15 + x) (-16.5 + y) (1.5 + z)))
 
 

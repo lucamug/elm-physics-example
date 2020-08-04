@@ -8,3 +8,7 @@
 * [README lucamug/elm-starter](https://github.com/lucamug/elm-starter)
 
 [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/lucamug/elm-physics-example)
+
+# TODO
+
+* Make the loop stop when not focused

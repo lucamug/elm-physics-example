@@ -79,7 +79,44 @@ index flags =
                                     , locationHref: location.href
                                     }
                                 }
-                            );"""
+                            );
+                            
+                            
+                            if (ElmApp && ElmApp.ports && ElmApp.ports.changePitch) {
+                                ElmApp.ports.changePitch.subscribe(function(newPitch) {
+                                    if (source) {
+                                        if (! started) {
+                                            source.start();
+                                            started = true;
+                                        }
+                                        source.playbackRate.value = 1 + (newPitch / 40);
+                                    }
+                                });
+                            } 
+                            
+                            var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                            var xhr = new XMLHttpRequest();
+                            var started = false;
+                            var source;
+                            var audioData;
+
+                            xhr.open("GET", "engine.wav", true);
+                            xhr.responseType = "arraybuffer";
+                            xhr.onload = function(e){
+
+                                var audioData = this.response;
+
+                                source = audioCtx.createBufferSource();
+
+                                audioCtx.decodeAudioData(audioData, function(buffer) {
+                                    source.buffer = buffer;
+                                    source.loop = true;
+                                    source.connect(audioCtx.destination);
+                                });
+                            };
+
+                            xhr.send();
+                            """
                                 ++ Starter.SnippetJavascript.portOnUrlChange
                                 ++ Starter.SnippetJavascript.portPushUrl
                                 ++ Starter.SnippetJavascript.portChangeMeta
